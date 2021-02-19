@@ -145,3 +145,7 @@ dmypy.json
 # Pickles
 *.pickle
 *.pkl
+
+# Data
+data/*
+!data/.gitkeep

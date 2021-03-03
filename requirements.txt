@@ -1,7 +1,7 @@
 transformers==4.3.2
-pandas==1.2.2
+pandas==1.2.3
 scikit-learn==0.24.1
 torch==1.7.1
-plotly
-vadersentiment
+plotly==4.14.3
+vadersentiment==3.3.2
 

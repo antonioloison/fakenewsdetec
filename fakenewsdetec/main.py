@@ -4,7 +4,6 @@ import logging
 import os
 import pandas as pd
 
-
 import numpy as np
 import torch
 
@@ -14,7 +13,6 @@ def read_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config-file", type=str)
     return parser.parse_args()
-
 
 if __name__ == "__main__":
     args = read_args()
@@ -32,8 +30,12 @@ if __name__ == "__main__":
     val_datapoints = pd.read_csv(val_data_path)
     test_datapoints = pd.read_csv(test_data_path)
     
-    
-    model = BertModel(config)
-    model.train(train_datapoints, val_datapoints)
+    if config["model"] == "bert":
+        if config["model"] == "no_train":
+            print(" Model is loaded from an already-trained previous backup")
+            model = BertModel(config, train_datapoints, val_datapoints)
+        else: 
+            model = BertModel(config, train_datapoints, val_datapoints)
+            model.train()
 
     

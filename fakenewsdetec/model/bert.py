@@ -4,21 +4,29 @@ from typing import List
 
 import torch
 import pandas as pd
+import os
 
 from transformers import BertForSequenceClassification, Trainer, TrainingArguments
 from utils.bert_dataloader import BertDataset
+from base import Model
 
-class BertModel():
-    def __init__(self, config: Dict):
-        self.config = config
-        self.model = BertForSequenceClassification.from_pretrained(config['model_type'], num_labels = 2)
-        self.training_args = TrainingArguments(**config["training_args"])
-        
-    
-    def train(self,
-              train_datapoints: pd.DataFrame,
-              val_datapoints: pd.DataFrame,
+
+class BertModel(Model):
+    def __init__(self, 
+                config: Dict, 
+                train_datapoints: pd.DataFrame,
+                val_datapoints: pd.DataFrame
     ):
+        self.config = config
+        if config["download_model"] == "True":
+            self.model = BertForSequenceClassification.from_pretrained(config['model_type'], num_labels = 2)
+        else:
+            self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            self.raw_model_path = os.path.join(base_dir, config["raw_model_path"])
+            self.model = BertForSequenceClassification.from_pretrained(raw_model_path, num_labels = 2)
+
+        self.training_args = TrainingArguments(**config["training_args"])
+
         inputs_train = train_datapoints[self.config['train_on']].values.tolist()
         labels_train = train_datapoints['label'].values.tolist()
 
@@ -29,8 +37,35 @@ class BertModel():
         eval_data = BertDataset(self.config, inputs_eval, labels_eval)
        
         self.trainer = Trainer(model=self.model, args=self.training_args, train_dataset=train_data, eval_dataset=eval_data)
+          
+    def train(self):
+        
         self.trainer.train()
-""" 
+
+        ### Sauvegarder le model avec un paramètre facultatif puis le recharger
+"""
+    def predict(self, test_datapoints: pd.DataFrame) -> np.array:
+        
+        inputs_test = test_datapoints[self.config['train_on']].values.tolist()
+        labels_test = test_datapoints['label'].values.tolist()
+        
+        test_data = BertDataset(self.config, inputs_test, labels_test)
+        
+        dataloader = DataLoader(data,
+                                batch_size=self.config["batch_size"],
+                                pin_memory=True)
+        self.model.eval()
+        predicted = []
+        self.model.cuda()
+        with torch.no_grad():
+            for idx, batch in enumerate(dataloader):
+                output = self.model(input_ids=batch["ids"].cuda(),
+                                    attention_mask=batch["attention_mask"].cuda(),
+                                    token_type_ids=batch["type_ids"].cuda(),
+                                    labels=batch["label"].cuda())
+                predicted.append(output[1])
+        return torch.cat(predicted, axis=0).cpu().detach().numpy()
+
     def compute_metrics(self, eval_datapoints: List[Datapoint], split: Optional[str] = None) -> Dict:
         expected_labels = [datapoint.label for datapoint in eval_datapoints]
         predicted_proba = self.predict(eval_datapoints)
@@ -53,22 +88,7 @@ class BertModel():
             f"{split_prefix} true positive": tp,
         }
     
-    def predict(self, datapoints: List[Datapoint]) -> np.array:
-        data = FakeNewsTorchDataset(self.config, datapoints)
-        dataloader = DataLoader(data,
-                                batch_size=self.config["batch_size"],
-                                pin_memory=True)
-        self.model.eval()
-        predicted = []
-        self.model.cuda()
-        with torch.no_grad():
-            for idx, batch in enumerate(dataloader):
-                output = self.model(input_ids=batch["ids"].cuda(),
-                                    attention_mask=batch["attention_mask"].cuda(),
-                                    token_type_ids=batch["type_ids"].cuda(),
-                                    labels=batch["label"].cuda())
-                predicted.append(output[1])
-        return torch.cat(predicted, axis=0).cpu().detach().numpy()
+    
     
     def get_params(self) -> Dict:
         return {}

@@ -1,7 +1,7 @@
+import os
 import argparse
 import json
 import logging
-import os
 import pandas as pd
 
 import numpy as np
@@ -31,11 +31,16 @@ if __name__ == "__main__":
     test_datapoints = pd.read_csv(test_data_path)
     
     if config["model"] == "bert":
-        if config["model"] == "no_train":
+        print("Loading Model...")
+        model = BertModel(config, train_datapoints, val_datapoints, test_datapoints)
+        if config["train"] == "False":
             print(" Model is loaded from an already-trained previous backup")
-            model = BertModel(config, train_datapoints, val_datapoints)
-        else: 
-            model = BertModel(config, train_datapoints, val_datapoints)
+            print("Predictions result: ")
+            model.compute_metrics()       
+        else:
+            print(" Training Model...")
             model.train()
+            print(" Evaluating Model...")
+            mode.evaluate()
 
     

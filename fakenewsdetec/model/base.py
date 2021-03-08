@@ -9,7 +9,7 @@ import pandas as pd
 
 class Model(ABC):
     @abstractmethod
-    def train(self) -> None:
+    def train(self):
         """
         Performs training of model. The exact train implementations are model specific.
         :param train_datapoints: List of train datapoints
@@ -18,9 +18,9 @@ class Model(ABC):
         :return:
         """
         pass
-    
+   
     @abstractmethod
-    def predict(self, datapoints: List[Datapoint]) -> np.array:
+    def predict(self, test_data):
         """
         Performs inference of model on collection of datapoints. Returns an
         array of model predictions. This should only be called after the model
@@ -31,20 +31,11 @@ class Model(ABC):
         pass
     
     @abstractmethod
-    def compute_metrics(self, eval_datapoints: List[Datapoint], split: Optional[str] = None) -> Dict:
+    def compute_metrics(self):
         """
         Compute a set of model-specifc metrics on the provided set of datapoints.
         :param eval_datapoints: Datapoints to compute metrics for
         :param split: Data split on which metrics are being computed
         :return: A dictionary mapping from the name of the metric to its value
-        """
-        pass
-    
-    @abstractmethod
-    def get_params(self) -> Dict:
-        """
-        Return the model-specific parameters such as number of hidden-units in the case
-        of a neural network or number of trees for a random forest
-        :return: Dictionary containing the model parameters
         """
         pass

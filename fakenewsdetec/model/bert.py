@@ -1,6 +1,7 @@
 import os
 import torch
 import pandas as pd
+import numpy as np
 
 from typing import Dict
 from typing import List
@@ -63,7 +64,7 @@ class BertModel(Model):
         print(self.trainer.evaluate())
 
     def predict(self, test_data):
-        return trainer.predict(test_data)
+        return self.trainer.predict(test_data)
         
     def compute_metrics(self):
         expected_labels = self.labels_test

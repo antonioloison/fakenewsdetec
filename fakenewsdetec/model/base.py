@@ -1,11 +1,5 @@
 from abc import ABC
 from abc import abstractmethod
-from typing import Dict
-from typing import List
-from typing import Optional
-
-import numpy as np
-import pandas as pd
 
 class Model(ABC):
     @abstractmethod

@@ -1,0 +1,10 @@
+transformers==4.3.2
+pandas==1.2.3
+scikit-learn==0.24.1
+torch==1.7.1
+plotly==4.14.3
+vadersentiment==3.3.2
+fasttext==0.9.2
+gensim==3.8.3
+numpy==1.20.1
+

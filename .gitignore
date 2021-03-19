@@ -148,4 +148,14 @@ dmypy.json
 
 # Data
 data/*
-!data/.gitkeep
+!data/processed/.gitkeep
+!data/raw/.gitkeep
+
+# Model
+fakenewsdetec/model/raw_model/*
+fakenewsdetec/model/saved_model/*
+!fakenewsdetec/model/raw_model/.gitkeep
+!fakenewsdetec/model/saved_model/.gitkeep
+
+
+fakenewsdetec/model/bert

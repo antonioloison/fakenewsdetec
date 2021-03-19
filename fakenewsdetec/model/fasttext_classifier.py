@@ -20,7 +20,6 @@ class FasttextClassifier(Model):
         self.config = config
         self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.saved_model_path = os.path.join(self.base_dir, self.config["saved_model_path"])
-        # self.raw_model_path = os.path.join(self.base_dir, self.config["raw_model_path"])
 
         if bool(self.config["train"]):
             self.model = None
@@ -53,12 +52,26 @@ class FasttextClassifier(Model):
         if os.path.exists(file_path):
             os.remove(file_path)
 
-    def train(self):
+    def train(self, autotune: bool = False, time_limit: int = 300):
         self.save_data_as_txt(self.train_datapoints, "data/fasttext_train.txt")
+        if autotune:
+            self.save_data_as_txt(self.val_datapoints, "data/fasttext_val.txt")
 
-        self.model = fasttext.train_supervised("data/fasttext_train.txt")
+        if autotune:
+            self.model = fasttext.train_supervised("data/fasttext_train.txt",
+                                                   autotuneValidationFile='data/fasttext_val.txt',
+                                                   autotuneDuration=time_limit)
+        else:
+            self.model = fasttext.train_supervised("data/fasttext_train.txt")
 
         self.delete_file("data/fasttext_train.txt")
+
+    def save_model(self, saving_path: str = None):
+        if saving_path is None:
+            print(self.saved_model_path)
+            self.model.save_model(self.saved_model_path)
+        else:
+            self.model.save_model(saving_path)
 
     def predict(self, test_data: pd.DataFrame):
         if "processed_text" in test_data.columns:

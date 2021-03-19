@@ -20,6 +20,7 @@ class FasttextClassifier(Model):
         self.config = config
         self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.saved_model_path = os.path.join(self.base_dir, self.config["saved_model_path"])
+        self.train_on = self.config["train_on"]
 
         if bool(self.config["train"]):
             self.model = None
@@ -30,10 +31,9 @@ class FasttextClassifier(Model):
         self.val_datapoints = self.process_data_for_training(val_datapoints)
         self.test_datapoints = self.process_data_for_training(test_datapoints)
 
-    @staticmethod
-    def process_data_for_training(df: pd.DataFrame):
+    def process_data_for_training(self, df: pd.DataFrame):
         new_df = df.copy()
-        new_df["processed_text"] = df["text"].apply(lambda x: " ".join(simple_preprocess(x)))
+        new_df["processed_text"] = df[self.train_on].apply(lambda x: " ".join(simple_preprocess(x)))
         new_df["processed_label"] = df["label"].apply(lambda x: "__label__" + str(x))
         return new_df
     

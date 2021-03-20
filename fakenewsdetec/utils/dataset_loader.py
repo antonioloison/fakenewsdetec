@@ -1,43 +1,61 @@
+import functools
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
 from sklearn.neighbors import NearestNeighbors
-from typing import Tuple
+from typing import List, Tuple
+
+from dataset_functions import load_dataset
 
 class Dataset:
     def __init__(self, data_folder):
         self.data_folder = Path(data_folder)
-        self.isot_folder = Path('isot/')
-        self.kaggle_folder = Path('kaggle/')
 
-    def load_dataset(self, dataset: int = 0):
+    def load_dataset(self, datasets: List[str] = ['berkeley']):
         """Load the specified dataset.
         
-        :param dataset: 0 loads isot + kaggle; 1 loads isot; 2 loads kaggle
-        :type dataset: int, optional
+        :param datasets: list of datasets to load
+        :type datasets: List, optional
         
         :rtype: pd.Dataframe
         :return: dataset
         """
-        if dataset==0:
-            dataset_name = 'combined_dataset.csv'
-        elif dataset==1:
-            dataset_name = 'isot.csv'
-        elif dataset==2:
-            dataset_name = 'kaggle.csv'
+        df = pd.DataFrame()
 
-        data_path = self.data_folder / 'processed/' / dataset_name
+        combined_name = functools.reduce(lambda a,b: f"{a}_{b}", sorted(datasets))
+        data_path_c = self.data_folder / 'processed/' / f"{combined_name}.csv"
 
-        if data_path.is_file():
-            df = pd.read_csv(data_path, header=0)
+        if data_path_c.is_file():
+            df = pd.read_csv(data_path_c)
         else:
-            df = self.__build_dataset(data_path, dataset)
-        
+            for dataset in datasets:
+                data_path = self.data_folder / 'processed/' / f"{dataset}.csv"
+
+                if data_path.is_file():
+                    df_ = pd.read_csv(data_path)
+                    print(f"{dataset} already exists")
+                else:
+                    df_ = self.__build_dataset(data_path, dataset)
+
+                df = pd.concat([df, df_])
+            df = df.sample(frac=1).reset_index(drop=True)
+            df = self.__preprocess_dataset(df)
+            df.to_csv(data_path_c, index=False)
+
+        train, rest = train_test_split(df, test_size=0.3)
+        test, evaluation = train_test_split(rest, test_size=0.5)
+
+        for type_ in ['train', 'test', 'eval']:
+            path = self.data_folder / 'processed/' / f"{combined_name}/" / f"{type_}.csv"
+            path.parents[0].mkdir(parents=True, exist_ok=True)
+            df.to_csv(path, index=False)
+    
         return df
 
-    def __build_dataset(self, path: Path, dataset: int = 0):
+    def __build_dataset(self, path: Path, dataset: str):
         """Load the specified dataset.
         
         :param dataset: 0 loads isot + kaggle; 1 loads isot; 2 loads kaggle
@@ -46,13 +64,8 @@ class Dataset:
         :rtype: pd.Dataframe
         :return: dataset
         """
-        if dataset==0:
-            df = pd.concat([self.__load_isot_dataset(self.data_folder / self.isot_folder), self.__load_kaggle_dataset(self.data_folder / self.kaggle_folder)])
-            df = df.sample(frac=1).reset_index(drop=True)
-        elif dataset==1:
-            df = self.__load_isot_dataset(self.data_folder / self.isot_folder)
-        elif dataset==2:
-            df = self.__load_kaggle_dataset(self.data_folder / self.kaggle_folder)
+        print(f"Build {dataset}")
+        df = load_dataset[dataset](self.data_folder / f"{dataset}/")
             
         df['text'] = df['text'].astype(str)
         df['title'] = df['title'].astype(str)
@@ -60,44 +73,9 @@ class Dataset:
         df = self.__preprocess_dataset(df)
 
         path.parents[0].mkdir(parents=True, exist_ok=True)
-        df.to_csv(path)
+        df.to_csv(path, index=False)
         
         return df
-
-    def __load_isot_dataset(self, folder: Path):
-        """Load isot dataset.
-        
-        :param folder: folder to look for isot files
-        :type folder: pathlib.Path
-        
-        :rtype: pd.Dataframe
-        :return: isot dataset"""
-        isot_df = []
-        
-        for label, csv_file in enumerate(['True.csv', 'Fake.csv']):
-            isot_df.append(pd.read_csv(folder / Path(csv_file), header=0))
-            isot_df[-1]['label'] = label
-            
-
-        isot_df_concat = pd.concat(isot_df)
-        isot_df_concat['dataset'] = 'isot'
-        
-        isot_df_concat = isot_df_concat.sample(frac=1).reset_index(drop=True)
-        
-        return isot_df_concat
-
-    def __load_kaggle_dataset(self, folder: Path):
-        """Load kaggle dataset.
-        
-        :param folder: folder to look for kaggle files
-        :type folder: pathlib.Path
-        
-        :rtype: pd.Dataframe
-        :return: kaggle dataset"""
-        kaggle_df = pd.read_csv(folder / Path('train.csv'), header=0, index_col='id')
-        kaggle_df['dataset'] = 'kaggle'
-            
-        return kaggle_df
 
     def __preprocess_dataset(self, df: pd.DataFrame):
         """Apply preprocessing operations to dataset.
@@ -128,8 +106,8 @@ class Dataset:
         d_ = {'text': nearest_values[:,0], 'distance': distances[:,1], 'best_match_index': indexes[:,1]}
         return pd.DataFrame(data=d_)
 
-    def __remove_duplicates(self, df: pd.DataFrame, field: str, threshold: float = 0.3):
-        df_no_duplicates = df.reset_index()
+    def __remove_duplicates(self, df: pd.DataFrame, field: str, threshold: float = 0.2):
+        df_no_duplicates = df.reset_index(drop=True)
         similar_df = self.__build_duplicated_df(df_no_duplicates, field)
         similar_df = similar_df[similar_df['distance'] < threshold]
 
@@ -150,12 +128,16 @@ class Dataset:
 
         indexes_to_remove = list(similar_df.index)
         for group in groups:
-            indexes_to_remove.remove(group.pop())
-        preprocessed_df = df_no_duplicates.reset_index().drop(index=indexes_to_remove)
+            index_to_keep = group.pop()
+            if index_to_keep in indexes_to_remove:
+                indexes_to_remove.remove(index_to_keep)
+        preprocessed_df = df_no_duplicates.reset_index(drop=True).drop(index=indexes_to_remove)
 
         return preprocessed_df
+
+
 
 if __name__ == '__main__':
     dataset = Dataset('../../data')
 
-    print(dataset.load_dataset())
+    print(dataset.load_dataset(['berkeley']))

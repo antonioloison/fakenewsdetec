@@ -3,8 +3,9 @@ import argparse
 import json
 import pandas as pd
 
-from fakenewsdetec.model.bert import BertModel
-from fakenewsdetec.model.fasttext_classifier import FasttextClassifier
+#from fakenewsdetec.model.bert import BertModel
+from model.fasttext_classifier import FasttextClassifier
+from utils.dataset_loader import Dataset
 
 
 def read_args() -> argparse.Namespace:
@@ -14,20 +15,19 @@ def read_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-    args = read_args()
-    with open(args.config_file) as f:
-        config = json.load(f)
+    #args = read_args()
+    #with open(args.config_file) as f:
+        #config = json.load(f)
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
    
-    train_data_path = os.path.join(base_dir, config["train_data_path"])
-    val_data_path = os.path.join(base_dir, config["val_data_path"])
-    test_data_path = os.path.join(base_dir, config["test_data_path"])
-    
+    dataset = Dataset('../data')
     # Read data
-    train_datapoints = pd.read_csv(train_data_path)
-    val_datapoints = pd.read_csv(val_data_path)
-    test_datapoints = pd.read_csv(test_data_path)
+    train_datapoints, val_datapoints, test_datapoints = dataset.load_dataset(['berkeley'])
+
+    print(train_datapoints.head())
+
+    """
     
     if config["model"] == "bert":
         print("Loading Model...")
@@ -51,3 +51,4 @@ if __name__ == "__main__":
         print("Model is loaded from an already-trained previous backup")
         print("Predictions result: ")
         print(model.compute_metrics())
+"""

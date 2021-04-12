@@ -1,3 +1,7 @@
+from functools import partial
+import os
+import pickle
+import re
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -8,14 +12,13 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import numpy as np
 import pandas as pd
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
-from sklearn.feature_extraction.text import TfidfVectorizer
-import re
+from sklearn.naive_bayes import MultinomialNB
 
 from base import Model
 
@@ -27,86 +30,55 @@ class TfIdfModel(Model):
                 val_datapoints: pd.DataFrame,
                 test_datapoints: pd.DataFrame,
     ):
-        self.testtt()
         self.config = config
-        """
         self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.saved_model_path = os.path.join(self.base_dir, self.config["saved_model_path"])
-        self.raw_model_path = os.path.join(self.base_dir, self.config["raw_model_path"])
+        self.saved_model_path = os.path.join(self.base_dir, self.config.get("saved_model_path", ""))
 
-        if self.config["train"] == "False":           
-            self.model = BertForSequenceClassification.from_pretrained(self.saved_model_path)
-        
-        elif self.config["download_model"] == "True":
-            self.model = BertForSequenceClassification.from_pretrained(self.config['model_type'], num_labels = 2)
-        
-        else:
-            self.model = BertForSequenceClassification.from_pretrained(self.raw_model_path, num_labels = 2)
-
-        self.training_args = TrainingArguments(**config["training_args"])
-        """
         self.lemmatizer = WordNetLemmatizer()
         self.tfidfVectorizer = TfidfVectorizer()
         self.classifier = MultinomialNB()
 
-        #self.inputs_train = train_datapoints[self.config['train_on']].values.tolist()
-        #self.labels_train = train_datapoints['label'].values.tolist()
+        if bool(self.config.get("train", False)):
+            self.model = None
+        else:
+            try:
+                self.model = pickle.load(self.saved_model_path)
+            except TypeError as e:
+                print("Impossible to load existing model")
+                self.model = None
+        #self.raw_model_path = os.path.join(self.base_dir, self.config["raw_model_path"])
+
+        preprocess = partial(self.text_preprocess, self.lemmatizer)
 
         self.train_data = train_datapoints
-        self.train_data[self.config['train_on']] = self.train_data[self.config['train_on']].apply(self.__text_preprocess)
-
-        #self.inputs_eval = val_datapoints[self.config['train_on']].values.tolist()
-        #self.labels_eval = val_datapoints['label'].values.tolist()
+        self.train_data[self.config['train_on']] = self.train_data[self.config['train_on']].apply(preprocess)
 
         self.val_data = val_datapoints
-        self.val_data[self.config['train_on']] = val_datapoints[self.config['train_on']].apply(self.__text_preprocess)
-
-        #self.inputs_test = test_datapoints[self.config['train_on']].values.tolist()
-        #self.labels_test = test_datapoints['label'].values.tolist()
+        self.val_data[self.config['train_on']] = val_datapoints[self.config['train_on']].apply(preprocess)
 
         self.test_data = test_datapoints
-        self.test_data[self.config['train_on']] = test_datapoints[self.config['train_on']].apply(self.__text_preprocess)
+        self.test_data[self.config['train_on']] = test_datapoints[self.config['train_on']].apply(preprocess)
 
-
-
-        """
-        self.train_data = BertDataset(self.config, self.inputs_train, self.labels_train)
-        self.eval_data = BertDataset(self.config, self.inputs_eval, self.labels_eval)
-        self.test_data = BertDataset(self.config, self.inputs_test, self.labels_test)
-       
-        self.trainer = Trainer(model=self.model, args=self.training_args, train_dataset=self.train_data, eval_dataset=self.eval_data)
-        """
-
-        self.testtt()
-        self.train()
-    def testtt(self):
-        print('testtt')
           
-    def train(self):
-        print('Training...')
+    def train(self) -> None:
         train_transformed = self.tfidfVectorizer.fit_transform(self.train_data[self.config['train_on']]).toarray()
-        test_transformed = self.tfidfVectorizer.transform(self.test_data[self.config['train_on']])
-
         self.classifier.fit(train_transformed, self.train_data.label)
-        #self.trainer.save_model(self.saved_model_path)
-        y_pred = self.classifier.predict(test_transformed)
-        classification_report_ = classification_report(self.test_data.label, y_pred)
 
-        print('\n Accuracy: ', accuracy_score(self.test_data.label, y_pred))
-        print('\nClassification Report')
-        print('======================================================')
-        print('\n', classification_report_)
-    
-    def eval(self):
-        print(self.trainer.evaluate())
+        if self.saved_model_path:
+            try:
+                pickle.dump(self.classifier, self.saved_model_path) 
+                print("Model saved")
+            except:
+                pass
 
-    def predict(self, test_data):
-        return self.trainer.predict(test_data)
+
+    def predict(self, test_data: List) -> List:
+        test_transformed = self.tfidfVectorizer.transform(test_data)
+        return self.classifier.predict(test_transformed)
         
-    def compute_metrics(self):
-        expected_labels = self.labels_test
-        predicted_proba = self.predict(self.test_data)
-        predicted_labels = np.argmax(predicted_proba[0], axis=1)
+    def compute_metrics(self) -> None:
+        expected_labels = self.test_data.label
+        predicted_labels = self.predict(self.test_data[self.config['train_on']])
        
         accuracy = accuracy_score(expected_labels, predicted_labels)
         f1 = f1_score(expected_labels, predicted_labels)
@@ -121,12 +93,13 @@ class TfIdfModel(Model):
                 "true positive": tp,
         })
 
-    def __text_preprocess(self, text: str) -> str:
+    @staticmethod
+    def text_preprocess(lemmatizer, text: str) -> str:
         text = re.sub('[^a-zA-Z]', ' ', text) # Retain only alphabets
         text = text.lower() # Lower case string
         text = [w for w in text.split() if not w in set(stopwords.words('english'))]  # Remove stopwords
         
-        text = [self.lemmatizer.lemmatize(w) for w in text if len(w) > 1] # Lemmatize
+        text = [lemmatizer.lemmatize(w) for w in text if len(w) > 1] # Lemmatize
         
         text = ' '.join(text)
 
@@ -143,8 +116,5 @@ if __name__ == "__main__":
     val = pd.read_csv('../../data/eval_berkeley_1.csv')
 
     model = TfIdfModel(config, train, val, test)
-
-    #print(model)
-    #print(type(model))
-    #model.train()
-
+    model.train()
+    model.compute_metrics()

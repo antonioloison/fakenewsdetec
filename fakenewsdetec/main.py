@@ -4,8 +4,8 @@ import json
 import pandas as pd
 
 from fakenewsdetec.model.bert import BertModel
-from model.fasttext_classifier import FasttextClassifier
-from utils.dataset_loader import Dataset
+from fakenewsdetec.model.fasttext_classifier import FasttextClassifier
+from fakenewsdetec.utils.dataset_loader import Dataset
 
 
 def read_args() -> argparse.Namespace:

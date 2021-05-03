@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import NearestNeighbors
 from typing import List, Tuple
 
-from dataset_functions import load_dataset
+from .dataset_functions import load_dataset
 
 class Dataset:
     def __init__(self, data_folder):
@@ -53,7 +53,7 @@ class Dataset:
             path.parents[0].mkdir(parents=True, exist_ok=True)
             df.to_csv(path, index=False)
     
-        return df
+        return train, test, evaluation
 
     def __build_dataset(self, path: Path, dataset: str):
         """Load the specified dataset.
@@ -90,7 +90,7 @@ class Dataset:
         df = df[text_length > 10]
 
         # Remove duplicates
-        df = self.__remove_duplicates(df, 'text')
+        #df = self.__remove_duplicates(df, 'text')
         
         return df
 

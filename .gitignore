@@ -147,7 +147,7 @@ dmypy.json
 *.pkl
 
 # Config
-#config/*.json
+config/*.json
 !config/*.dist.json
 
 # Data

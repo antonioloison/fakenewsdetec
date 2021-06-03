@@ -19,7 +19,7 @@ Preprocess dataset will be saved in folder data/processed
 
 ### Dataset analyses :
 
-If you want to analyse your dataset you can use the notebooks in the folder `notebook/dataset_exploration` wich contains saveral type of analyses like:
+If you want to analyse your dataset you can use the notebooks in the folder `notebook/dataset_exploration` wich contains several typeq of analyses like:
 - Label distribution
 - Metadata distribution
 - Text length distribution
@@ -59,4 +59,4 @@ You can change the words that you want in the headlines by changing the variable
 
 ### Fake news generation
 
-We used GROVER to build a fake news generator that takes in input real headlines with keywords ( found with LIME ) on it. You can find the generator code in the notebook located inside the folder notebook/generator. Fakes news generated wiil be stored in the data/generator/generated folder in a .csv file, you can use them to train again your models
+We used GROVER to build a fake news generator that takes in input real headlines with keywords ( found with LIME ) on it. You can find the generator code in the notebook located inside the folder `notebook/generator`. Fakes news generated will be stored in the `data/generator/generated` folder in a .csv file, you can use them to train again your models

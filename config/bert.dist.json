@@ -6,17 +6,17 @@
     "download_model": "False",
     "raw_model_path": "model/raw_model/bert-base-uncased/",
     "train": "True",
-    "saved_model_path": "model/saved_model/bert-on-title/",
+    "saved_model_path": "model/saved_model/bert-on-text/",
     "tokenizer_type": "bert-base-uncased",
     "model_type": "bert-base-uncased",
-    "train_on":"title",
-    "training_args":{ "output_dir":"./model/saved_model/bert-on-title/trainer-files/results", 
-                      "num_train_epochs":1,  
+    "train_on":"text",
+    "training_args":{ "output_dir":"./model/saved_model/bert-on-text/trainer-files/results",
+                      "num_train_epochs":1,
                       "per_device_train_batch_size":8,
                       "learning_rate":0.0001,
-                      "do_eval":"True", 
+                      "do_eval":"True",
                       "eval_steps":100,
-                      "logging_dir":"./model/saved_model/bert-on-title/trainer-files/logs",
+                      "logging_dir":"./model/saved_model/bert-on-text/trainer-files/logs",
                       "logging_steps":10
                     }
   }

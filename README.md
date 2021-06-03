@@ -6,11 +6,11 @@ This project is compose of two distincts parts :
 
 This first part is a standart ML pipeline to train and evaluate three models for fake news detection : TF_IDF, FastText and BERT. 
 
-### Preprocessing et dataset generation:
+### Preprocessing and dataset generation:
 
-The raw dataset can be put in folder data/raw and should be in .csv
+The raw dataset can be put in folder `data/raw` and should be in `.csv`.
 
-The Dataset class will load the dataset and preprocess it. There are two simple preprocessing steps. First it will remove empty articles and then it will remove duplicates. It's also possible to  combine several datasets together. Duplicated removal is done by computing ngram TfIdfVectors of articles and then using cosine distance for time complexity matters.
+The `Dataset` class will load the dataset and preprocess it. There are two simple preprocessing steps. First it will remove empty articles and then it will remove duplicates. It's also possible to  combine several datasets together. Duplicated removal is done by computing ngram TfIdfVectors of articles and then using cosine distance for time complexity matters.
 
 The new dataset will be stored and every time the class is initialized the class will first try to locate the file. If the file doesn't exist, the preprocessing will be launched.
 
@@ -19,9 +19,12 @@ Preprocess dataset will be saved in folder data/processed
 
 ### Dataset analyses :
 
-If you want to analyse your dataset you can use the notebook ??????? wich contains saveral type of analyses like ??????
-
-blabla
+If you want to analyse your dataset you can use the notebooks in the folder `notebook/dataset_exploration` wich contains saveral type of analyses like:
+- Label distribution
+- Metadata distribution
+- Text length distribution
+- Vocabulary distribution
+- Sentiment Analysis
 
 ### Launch pipeline to train & evaluate :
 
@@ -29,7 +32,11 @@ Each model has been trained on titles and texts. Config files for each model can
 
 To launch the pipeline with the config file of your choice use the command below :
 
-`python main.py --config-file config/YOUR_CONFIG_FILE.json`
+```python main.py --config-file config/YOUR_CONFIG_FILE.json```
+
+There are three examples of config files depending on the model you want to use. To configure your own config file, please replace the `.dist.json` with `.json` and work on that file.
+
+
 
 ## 2 - Adversarial approach
 
@@ -44,7 +51,11 @@ We used LIME to understand model behaviour and explain the model predictions. li
 
 ### Retrieve Real Headlines 
 
-????
+To retrieve real headlines, you can execute this command:
+
+``` python fakenewsdetec/fakenewsdetec/google_news_scrapping.py ```
+
+You can change the words that you want in the headlines by changing the variable `words`.
 
 ### Fake news generation
 

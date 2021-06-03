@@ -146,6 +146,10 @@ dmypy.json
 *.pickle
 *.pkl
 
+# Config
+config/*.json
+!config/*.dist.json
+
 # Data
 data/processed/eval_dataset.csv
 data/processed/test_dataset.csv

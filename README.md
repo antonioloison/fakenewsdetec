@@ -9,11 +9,13 @@ This first part is a standart ML pipeline to train and evaluate three models for
 ### Preprocessing et dataset generation:
 
 The raw dataset can be put in folder data/raw and should be in .csv
-To launch preprocessing use the command below, it will compute a ?????? :
 
-blabla
+The Dataset class will load the dataset and preprocess it. There are two simple preprocessing steps. First it will remove empty articles and then it will remove duplicates. It's also possible to  combine several datasets together. Duplicated removal is done by computing ngram TfIdfVectors of articles and then using cosine distance for time complexity matters.
+
+The new dataset will be stored and every time the class is initialized the class will first try to locate the file. If the file doesn't exist, the preprocessing will be launched.
 
 Preprocess dataset will be saved in folder data/processed
+
 
 ### Dataset analyses :
 
@@ -37,7 +39,8 @@ This way our models should be improved by those new trainings.
 
 ### Models analyses with LIME
 
-?????
+We used LIME to understand model behaviour and explain the model predictions. lime() method (for tfidf model) will run the prediction for the test dataset and then the analysis on false negatifs. Word weights are printed and are also saved in a json file.
+
 
 ### Retrieve Real Headlines 
 
@@ -45,4 +48,4 @@ This way our models should be improved by those new trainings.
 
 ### Fake news generation
 
-We used GROVER to build a fake news generator that takes in input real headlines with keywords ( found with LIME ) on it. You can found the generator code in the notebook located inside the folder notebook/generator. Fakes news generated wiil be stored in the data/generator/generated folder in a .csv file, you can use them to train again your models
+We used GROVER to build a fake news generator that takes in input real headlines with keywords ( found with LIME ) on it. You can find the generator code in the notebook located inside the folder notebook/generator. Fakes news generated wiil be stored in the data/generator/generated folder in a .csv file, you can use them to train again your models

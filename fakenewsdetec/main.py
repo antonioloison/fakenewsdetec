@@ -5,7 +5,10 @@ import pandas as pd
 
 from fakenewsdetec.model.bert import BertModel
 from fakenewsdetec.model.fasttext_classifier import FasttextClassifier
+from fakenewsdetec.model.fasttext_classifier import FasttextClassifier
+from fakenewsdetec.model.tf-idf import TfIdfModel
 from fakenewsdetec.utils.dataset_loader import Dataset
+
 
 
 def read_args() -> argparse.Namespace:
@@ -42,6 +45,16 @@ if __name__ == "__main__":
     elif config["model"] == "fasttext":
         print("Loading Model...")
         model = FasttextClassifier(config, train_datapoints, val_datapoints, test_datapoints)
+        if bool(config["train"]):
+            print("Training Model...")
+            model.train()
+        print("Model is loaded from an already-trained previous backup")
+        print("Predictions result: ")
+        print(model.compute_metrics())
+
+    elif config["model"] == "tfidf":
+        print("Loading Model...")
+        model = TfIdfModel(config, train_datapoints, val_datapoints, test_datapoints)
         if bool(config["train"]):
             print("Training Model...")
             model.train()

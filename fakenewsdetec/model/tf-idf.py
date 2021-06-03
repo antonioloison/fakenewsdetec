@@ -71,6 +71,35 @@ class TfIdfModel(Model):
             except:
                 pass
 
+    def lime(self):
+        predicted_labels = self.predict(self.test_data[self.config['train_on']])
+        expected_labels = self.test_data.label
+
+        df_copy = self.test_data
+        df_copy["prediction"] = predicted_labels
+        df_copy = df_copy[df_copy["prediction"] != df_copy["label"]]
+        df_copy = df_copy[df_copy["prediction"] == 1]
+
+        c = make_pipeline(self.tfidfVectorizer, self.classifier)
+        class_names = ["real", "fake"]
+        explainer = LimeTextExplainer(class_names = class_names)
+        
+        error_dict = defaultdict(lambda: 0)
+        for article in df_copy.itertuples():
+            val = getattr(article, self.config['train_on'])
+
+            exp = explainer.explain_instance(val, c.predict_proba, num_features = 100)
+
+            for word, value in exp.as_list():
+                error_dict[word] += value
+
+        print(error_dict)
+        for k, v in sorted(error_dict.items(), key=lambda p:abs(p[1]), reverse=True):
+            print(k, v)
+
+        with open('data1.json', 'w') as fp:
+            json.dump(error_dict, fp) 
+
 
     def predict(self, test_data: List) -> List:
         test_transformed = self.tfidfVectorizer.transform(test_data)

@@ -45,4 +45,4 @@ This way our models should be improved by those new trainings.
 
 ### Fake news generation
 
-We used GROVER to build a fake news generator that takes in input real headlines with keywords ( found with LIME ) on it. You can found the generator code in the notebook located inside the folder notebook/generator
+We used GROVER to build a fake news generator that takes in input real headlines with keywords ( found with LIME ) on it. You can found the generator code in the notebook located inside the folder notebook/generator. Fakes news generated wiil be stored in the data/generator/generated folder in a .csv file, you can use them to train again your models

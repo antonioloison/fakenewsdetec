@@ -5,6 +5,6 @@
   "test_data_path": "data/test_berkeley_1.csv",
   "download_model": "False",
   "train": "True",
-  "saved_model_path": "model/saved_model/fasstext-model/",
+  "saved_model_path": "model/saved_model/fasttext-model/fasttext_model.bin",
   "train_on":"title"
 }

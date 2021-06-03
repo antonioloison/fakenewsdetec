@@ -22,10 +22,10 @@ class FasttextClassifier(Model):
         self.saved_model_path = os.path.join(self.base_dir, self.config["saved_model_path"])
         self.train_on = self.config["train_on"]
 
-        if bool(self.config["train"]):
-            self.model = None
-        else:
+        if self.config["download_model"] in ["True", "true"]:
             self.model = fasttext.load_model(self.saved_model_path)
+        else:
+            self.model = None
 
         self.train_datapoints = self.process_data_for_training(train_datapoints)
         self.val_datapoints = self.process_data_for_training(val_datapoints)
@@ -95,11 +95,16 @@ class FasttextClassifier(Model):
             rep.pop(key)
         return rep
 
-    def compute_metrics(self):
+    def compute_metrics(self, save: bool = False):
         train_metrics = self.get_metrics(self.train_datapoints)
         val_metrics = self.get_metrics(self.val_datapoints)
         test_metrics = self.get_metrics(self.test_datapoints)
 
-        return {"train_metrics": train_metrics,
-                "validation_metrics": val_metrics,
-                "test_metrics": test_metrics}
+        all_metrics = {"train_metrics": train_metrics,
+                       "validation_metrics": val_metrics,
+                       "test_metrics": test_metrics}
+
+        # if save:
+        #     with open("data/result_metrics/")
+
+        return all_metrics

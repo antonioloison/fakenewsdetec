@@ -111,9 +111,10 @@ if __name__ == "__main__":
         'train_on': 'text'
     }
 
-    generated = table = pd.read_csv('../../data/generated_news.csv')
-    generated['label'] = 1
-    train = pd.concat([pd.read_csv('../../data/train_berkeley_1.csv'), generated])
+    #generated = table = pd.read_csv('../../data/generated_news.csv')
+    #generated['label'] = 1
+    #train = pd.concat([pd.read_csv('../../data/train_berkeley_1.csv'), generated])
+    train = pd.read_csv('../../data/train_berkeley_1.csv')
     test = pd.read_csv('../../data/test_berkeley_1.csv')
     val = pd.read_csv('../../data/eval_berkeley_1.csv')
 
